@@ -81,6 +81,7 @@ We have a single handler to restart sshd:
 # file: roles/common/handlers/main.yml
 - name: restart sshd
   service: name=sshd state=restarted
+  sudo: yes
 ```
 
 And the meat of this is the tasks:  
