@@ -1,0 +1,3 @@
+[mailservers]
+alias ansible_ssh_host=90.xxx.xxx.xxx server_name=beta.example.com initial_ssh_pass=password
+

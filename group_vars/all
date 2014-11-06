@@ -1,0 +1,6 @@
+---
+# file: group_vars/all
+ansible_ssh_port: 22
+ansible_ssh_user: ansliber
+initial_ssh_user: root
+

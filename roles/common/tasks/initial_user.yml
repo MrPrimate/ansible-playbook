@@ -1,0 +1,38 @@
+---
+# file: roles/common/tasks/initial_user.yml
+
+- name: test initial user access with pw
+  local_action: shell sshpass -p '{{ansible_ssh_pass}}' ssh {{initial_ssh_user}}@{{server_name}} "echo success"
+  ignore_errors: true
+  register: initialuser
+
+- name: ensure normal user group exists
+  group: name={{normal_ssh_user}} state=present
+  when: initialuser|success
+
+- name: ensure normal_ssh_user created
+  user: name={{normal_ssh_user}} groups={{normal_ssh_user}},wheel
+  when: initialuser|success
+
+- name: set ssh key for normal user
+  authorized_key: user={{normal_ssh_user}} key="{{ lookup('file', normal_ssh_key ) }}"
+  when: initialuser|success
+
+- name: create sudoers file for user
+  shell: "touch /etc/sudoers.d/{{normal_ssh_user}}"
+  args:
+    chdir: /etc/sudoers.d
+    creates: "{{normal_ssh_user}}"
+  when: initialuser|success
+
+- name: add normal user password less sudo to their sudoers file
+  lineinfile: >
+    dest="/etc/sudoers.d/{{normal_ssh_user}}"
+    state=present
+    regexp='^#?{{ item.key }}'
+    line='{{ item.key }} {{ item.value }}'
+    validate='visudo -cf %s'
+  with_items:
+    - { key: "{{normal_ssh_user}}", value: 'ALL=(ALL) NOPASSWD: ALL' }
+  when: initialuser|success
+

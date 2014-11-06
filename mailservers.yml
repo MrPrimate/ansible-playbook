@@ -1,0 +1,6 @@
+---
+# file: mailservers.yml
+- hosts: mailservers
+  roles:
+    - common
+    - mail

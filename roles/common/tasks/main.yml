@@ -1,0 +1,17 @@
+---
+# file: roles/common/tasks/main.yml
+
+- include: initial_user.yml
+  gather_facts: False 
+  vars:
+    normal_ssh_user: "{{ansible_ssh_user}}"
+    normal_ssh_key: "{{normal_ssh_user}}_id.pub"
+    ansible_ssh_user: "{{initial_ssh_user}}"
+    ansible_ssh_pass: "{{initial_ssh_pass}}"
+
+
+# Now continue to run tasks as the normal user rather than root
+# from this point we log in as the normal user and disable SSH for root and lock it down
+
+- include: secure.yml
+  remote_user: "{{ansible_ssh_user}}"
