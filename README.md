@@ -23,7 +23,7 @@ Or maybe you want to use ansible on the more traditional server setup, or maybe 
 
 I have tried to organise the content as per <a href=http://docs.ansible.com/playbooks_best_practices.html>Ansible Best Practices</a>. 
 
-==So what do we have here then==
+## So what do we have here then ##
 
 Working assumptions:  
 
@@ -59,7 +59,10 @@ site.yml is the master yaml file it contains:
 ---
 # file: site.yml
 - include: mailservers.yml
+  gather_facts: False
 ```
+
+Fact gathering is disabled, if you need facts, manually enable them for each set of tasks you wish to run.
 
 mailservers.yml contains: 
 
@@ -103,6 +106,7 @@ And the meat of this is the tasks, the main task file calls two sub task files a
 # from this point we log in as the normal user and disable SSH for root and lock it down
 
 - include: secure.yml
+  gather_facts: True
   remote_user: "{{ansible_ssh_user}}"
 ```
 
@@ -123,21 +127,24 @@ So what does initial_user.yml include?
 # file: roles/common/tasks/initial_user.yml
 
 - name: test root access with pw
-  local_action: shell sshpass -p '{{ansible_ssh_pass}}' ssh {{initial_ssh_user}}@{{server_name}} "echo success"
+  local_action: shell sshpass -p '{{ansible_ssh_pass}}' ssh {{initial_ssh_user}}@{{ansible_ssh_host}} "echo success"
   ignore_errors: true
   register: initialuser
 
 - name: ensure user group exists
   group: name={{normal_ssh_user}} state=present
   when: initialuser|success
+  sudo: yes
 
 - name: ensure normal_ssh_user created
   user: name={{normal_ssh_user}} groups={{normal_ssh_user}},wheel
   when: initialuser|success
+  sudo: yes
 
 - name: set ssh key for normal user
   authorized_key: user={{normal_ssh_user}} key="{{ lookup('file', normal_ssh_key ) }}"
   when: initialuser|success
+  sudo: yes
 
 - name: create sudoers file for user
   shell: "touch /etc/sudoers.d/{{normal_ssh_user}}"
@@ -145,6 +152,7 @@ So what does initial_user.yml include?
     chdir: /etc/sudoers.d
     creates: "{{normal_ssh_user}}"
   when: initialuser|success
+  sudo: yes
 
 - name: add normal user password less sudo to their sudoers file
   lineinfile: >
@@ -156,6 +164,7 @@ So what does initial_user.yml include?
   with_items:
     - { key: "{{normal_ssh_user}}", value: 'ALL=(ALL) NOPASSWD: ALL' }
   when: initialuser|success
+  sudo: yes
 
 ```
 
@@ -172,7 +181,7 @@ So how do we check:
 
 ```YAML
 - name: test root access with pw
-  local_action: shell sshpass -p '{{ansible_ssh_pass}}' ssh {{initial_ssh_user}}@{{server_name}} "echo success"
+  local_action: shell sshpass -p '{{ansible_ssh_pass}}' ssh {{initial_ssh_user}}@{{ansible_ssh_host}} "echo success"
   ignore_errors: true
   register: initialuser
 ```
