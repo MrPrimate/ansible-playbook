@@ -23,7 +23,7 @@ Or maybe you want to use ansible on the more traditional server setup, or maybe 
 
 I have tried to organise the content as per <a href=http://docs.ansible.com/playbooks_best_practices.html>Ansible Best Practices</a>. 
 
-==So what do we have here then==
+## So what do we have here then ##
 
 Working assumptions:  
 
