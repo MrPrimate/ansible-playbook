@@ -6,6 +6,12 @@
   ignore_errors: true
   register: initialuser
 
+- name: be sure libselinux-python are installed
+  yum: >
+    name=libselinux-python
+    state=present
+  sudo: yes
+
 - name: ensure normal user group exists
   group: name={{normal_ssh_user}} state=present
   when: initialuser|success
