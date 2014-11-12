@@ -1,6 +1,7 @@
 ---
 # file: mailservers.yml
 - hosts: mailservers
+  gather_facts: False
   roles:
     - common
     - mail
